@@ -1,0 +1,147 @@
+<!doctype html>
+<html>
+    <head>
+        <meta name="robots" content="noindex">
+        <meta http-equiv="refresh" content="120"/>
+        <style>
+            body {
+                background-color: #ececec;
+                padding: 30px;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+
+            .streams {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                grid-gap: 30px;
+                list-style-type: none;
+                padding: 0;
+            }
+
+            img {
+                width: 100%;
+            }
+
+            li {
+                background-color: #fff;
+                border-radius: 15px;
+                padding: 15px;
+            }
+
+            a {
+                color: black;
+                text-decoration: none;
+            }
+
+            span {
+                display: block;
+                font-size: 1rem;
+                font-weight: 600;
+                margin-top: 10px;
+            }
+        </style> 
+    </head>
+    <body>
+        <h1 id="header"></h1>
+        <ul id="streams" class="streams"></ul>
+    </body>
+    <script>
+        function createNode(element) {
+            return document.createElement(element);
+        }
+    
+        function append(parent, el) {
+            return parent.appendChild(el);
+        }
+
+        const reddit = 'https://www.reddit.com/r/nba.json';
+        const ul = document.getElementById('streams');
+        const header = document.getElementById('header');
+        const url = 'https://api.angelthump.com/v1/';
+        const player = 'https://player.angelthump.com/?channel=';
+
+        fetch(url)
+        .then((resp) => resp.json())
+        .then(function(data) {
+            let streams = data.stream_list;
+            let streamsTotal = streams.length;
+            header.innerHTML = `Streams ${streamsTotal}`;
+            const streamsOrder = streams.sort(function(a, b) {
+                const last = a.viewers;
+                const next = b.viewers;
+                return last > next ? -1 : 1;
+            });     
+            streamsOrder.map(function(streams) {
+                let stream = streams;
+                let viewers = stream.viewers;
+                const urlUsername = url + `${stream.username}`;
+                let li = createNode('li'),
+                    span = createNode('span'),
+                    img = createNode('img'),
+                    a = createNode('a');
+                a.href = player + `${stream.username}`;
+                a.target = '_blank';
+                span.innerHTML = `stream: ${stream.username} | viewers: ${stream.viewers}`;
+                if(!stream.passwordProtected) {
+                    span.classList.add('open');
+                } else {
+                    span.classList.add('closed');
+                }
+                append(a, img);
+                append(a, span);
+                append(li, a);
+                append(ul, li);
+                fetch(urlUsername)
+                .then((resp) => resp.json())
+                .then(function(data) {
+                    let streamInfo = data;
+                    img.src = streamInfo.thumbnail;
+                });
+                
+            })
+        });
+
+        // fetch(reddit)
+        // .then((resp) => resp.json())
+        // .then(function(data) {
+        //     let posts = data.data.children;
+        //     posts.map(function(post) {
+        //         let media = post.data;
+        //         console.log(media);
+                
+        //         let span = createNode('span'),
+        //             li = createNode('li');
+        //         append(li, span);
+        //         append(ul, li);
+        //     })
+        // });
+
+        // streamsOrder.map(function(stream) {
+        //         let viewers = stream.viewers;
+        //         const urlUsername = url + `${stream.username}`;
+        //         fetch(urlUsername)
+        //         .then((resp) => resp.json())
+        //         .then(function(data) {
+        //             let stream = data;
+        //             let li = createNode('li'),
+        //                 span = createNode('span'),
+        //                 img = createNode('img'),
+        //                 a = createNode('a');
+        //             img.src = stream.thumbnail;
+        //             a.href = player + `${stream.username}`;
+        //             a.target = '_blank';
+        //             span.innerHTML = `stream: ${stream.username} | viewers: ${stream.viewers}`;
+        //             if(!stream.passwordProtected) {
+        //                 span.classList.add('open');
+        //             } else {
+        //                 span.classList.add('closed');
+        //             }
+        //             append(a, img);
+        //             append(a, span);
+        //             append(li, a);
+        //             append(ul, li);
+        //         });
+                
+        //     })
+    </script>
+</html>
